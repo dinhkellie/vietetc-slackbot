@@ -1,9 +1,15 @@
+# -*- coding: utf-8 -*-
 # Followed tutorials https://www.twilio.com/blog/2018/03/google-analytics-slack-bot-python.html
 # and https://www.fullstackpython.com/blog/build-first-slack-bot-python.html
 
 import os
 import time
 import re
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pylab as pl
+import matplotlib.lines as ln
+import matplotlib.pyplot as plt
 from slackclient import SlackClient
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
@@ -49,25 +55,71 @@ def parse_direct_mention(message_text):
     return (matches.group(1), matches.group(2).strip()) if matches else (None, None)
 
 def handle_command(command, channel):
+    return execute_command(command, channel)
+
+def execute_command(command, channel):
     """
         Executes bot command if the command is known
     """
     # Default response is help text for the user
-    default_response = "Not sure what you mean."
+    default_response = "Not sure what you mean. For help type: '@stats-bot help'"
 
     # Finds and executes the given command, filling in response
     response = None
     # This is where you start to implement more commands!
     if command.startswith("count"): 
         metric = command.split()[1]
-        response = '`{} {}!`'.format(count(metric), metric)
-    
+        response = '`{} {}`'.format(count(metric), metric)
+    elif command.startswith("help"):
+        response = "Usage: @stats-bot `count` (metric) `from` (starttime) `to` (endtime) \n Examples: \n @stats-bot `count` newUsers `from` 14daysago `to` today \n @stats-bot `count` pageviews `from` 100daysago `to` today \n @stats-bot `count` users"
+    elif command.startswith("graph"):
+        graph_metric(command, channel)
+    else:
+        response = default_response
+        # Sends the response back to the channel
+    slack_client.api_call(
+        "chat.postMessage",
+        channel=channel,
+        text=response
+    )
+
+def graph_metric(command, channel):
+    if len(command.split())>1:
+        metric = command.split()[1]
+        words = command.split(' ')
+        if 'by' in command and len(command.split())>3:
+            pos = words.index('by')
+            dimension = command.split()[pos+1]
+            x, y=count_xy(metric, dimension, command)
+            if not x[0].isdigit():
+                xtick_names = [x[0], x[1], x[2], x[3], x[4],  x[5],  x[6]]
+                my_xticks = [textwrap.fill(text,15) for text in xtick_names]
+                x = np.array([0, 1, 2, 3, 4, 5, 6])
+                plt.xticks(x, my_xticks, rotation=45)
+                y = np.array([y[0], y[1], y[2], y[3], y[4], y[5], y[6]])
+                # Stylize graph
+            pl.plot(x, y, "r-") # plots the graph with red lines
+            plt.ylim(ymin=0) #Sets the minimum y value to 0
+            pl.grid(True, linestyle='-.') #Makes a dashed grid in the background
+            plt.xlabel(dimension.capitalize()) #Capitalizes the first letter of the x-axis label
+            plt.ylabel(metric.capitalize()) #Capitalizes the first letter of the y-axis label
+            plt.title(metric.capitalize()+' by '+dimension.capitalize()) #Sets the title as [Metric] by [Dimension]
+            plt.tight_layout() #adjusts spacing between subplots
+            pl.savefig("graph.png") #saves the graph as a png file
+            slack_client.api_call('files.upload', channels=channel, filename='graph.png', file=open('graph.png', 'rb')) #uploads the png file to slack
+            pl.close()
+        else: #run if the command doesn’t contain more than four words
+            response='`What should {} be graphed by?`'.format(metric)
+    else: #run if the command doesn’t contain more than two words
+        response='`Graph what?`'
+
     # Sends the response back to the channel
     slack_client.api_call(
         "chat.postMessage",
         channel=channel,
-        text=response or default_response
+        text=response
     )
+
 
 # initialize an analytics object
 def initialize_analyticsreporting():
@@ -78,20 +130,69 @@ def initialize_analyticsreporting():
 
 # return number of pageviews/sessions with option for date range
 def count(metric):
+    start_date = "7daysAgo"
+    end_date = "today"
+    words = command.split(' ')
+    if 'from' in command:
+        pos = words.index('from')
+        start_date = command.split()[pos+1]
+    if 'to' in command:
+        pos = words.index('to')
+        end_date = command.split()[pos+1]
+    analytics = initialize_analyticsreporting()
+    try: 
+        response = analytics.reports().batchGet(
+            body={
+                'reportRequests': [
+                {
+                    'viewId': VIEW_ID,
+                    'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
+                    'metrics': [{'expression': 'ga:{}'.format(metric)}]
+                }]
+            }
+        ).execute()
+    except HttpError:
+        return "Unknown metric:"
+
+    answer = response['reports'][0]['data']['totals'][0]['values'][0]
+    print(response)
+    return answer
+
+# configure count function to plot x y coordinates with matplotlib
+def count_xy(metric, dimension, command):
+    start_date = "7daysAgo"
+    end_date = "today"
+    words = command.split(' ')
+    if 'from' in command:
+        pos = words.index('from')
+        start_date = command.split()[pos+1]
+    if 'to' in command:
+        pos = words.index('to')
+        end_date = command.split()[pos+1]
     analytics = initialize_analyticsreporting()
     response = analytics.reports().batchGet(
         body={
             'reportRequests': [
             {
                 'viewId': VIEW_ID,
-                'dateRanges': [{'startDate': "7daysAgo", 'endDate': "today"}],
-                'metrics': [{'expression': 'ga:{}'.format(metric)}]
+                'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
+                'metrics': [{'expression': 'ga:{}'.format(metric)}],
+                'dimensions': [{'name':'ga:{}'.format(dimension)}]
+
             }]
         }
     ).execute()
-    answer = response['reports'][0]['data']['totals'][0]['values'][0]
-    print(response)
-    return answer
+    answer = response['reports'][0]['data']['rows']
+    if not answer[0]['dimensions'][0].isdigit():
+        answer = sorted(answer, key=lambda x: float(x['metrics'][0]['values'][0]), reverse=True)
+    yArray=[]
+    for step in range(0, len(answer)):
+        yArray.append(float(answer[step]['metrics'][0]['values'][0]))
+    xArray=[]
+    for step in range(0, len(answer)):
+        xArray.append(answer[step]['dimensions'][0])
+    return xArray, yArray
+
 
 if __name__ == "__main__":
     if slack_client.rtm_connect(with_team_state=False):
