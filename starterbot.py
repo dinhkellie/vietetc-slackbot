@@ -10,6 +10,7 @@ matplotlib.use('Agg')
 import matplotlib.pylab as pl
 import matplotlib.lines as ln
 import matplotlib.pyplot as plt
+import logging
 from slackclient import SlackClient
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
@@ -20,8 +21,11 @@ slack_client = SlackClient(slack_token)
 view_id = os.environ['VIEW_ID']
 
 SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
-KEY_FILE_LOCATION = 'slackbot-vietetc-0657ea58d876.json'
+KEY_FILE_LOCATION = 'Slackbot-vietetc-0c24bfcf328c.json'
 VIEW_ID = view_id
+
+
+logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
 
 # instantiate Slack client
 # slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
@@ -84,6 +88,7 @@ def execute_command(command, channel):
     )
 
 def graph_metric(command, channel):
+    response = ''
     if len(command.split())>1:
         metric = command.split()[1]
         words = command.split(' ')
@@ -125,7 +130,7 @@ def graph_metric(command, channel):
 def initialize_analyticsreporting():
   credentials = ServiceAccountCredentials.from_json_keyfile_name(
       KEY_FILE_LOCATION, SCOPES)
-  analytics = build('analytics', 'v4', credentials=credentials, cache_discovery=False)
+  analytics = build('analyticsreporting', 'v4', credentials=credentials, cache_discovery=False)
   return analytics
 
 # return number of pageviews/sessions with option for date range
