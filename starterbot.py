@@ -72,7 +72,7 @@ def execute_command(command, channel):
 
     # Finds and executes the given command, filling in response
     response = None
-    # This is where you start to implement more commands!
+    
     if command.startswith("count"): 
         metric = command.split()[1]
         response = '`{} {}`'.format(count(metric), metric)
@@ -80,6 +80,11 @@ def execute_command(command, channel):
         response = "Usage: @stats-bot `count` (metric) `from` (starttime) `to` (endtime) \n Examples: \n @stats-bot `count` newUsers `from` 14daysago `to` today \n @stats-bot `count` pageviews `from` 100daysago `to` today \n @stats-bot `count` users \n @stats-bot `graph` (metric) by `dimension` `from` (starttime) `to` (endtime) \n @stats-bot `graph` users `by` day `from` 14daysago `to` today"
     elif command.startswith("graph"):
         graph_metric(command, channel)
+    elif command.startswith("goal"):
+        goal_number = command.split()[1]
+        metric = command.split()[2]
+        dimension = command.split()[4]
+        response = 'You are currently at '+ str(set_goal_metric(goal_number, metric, dimension)) + metric
     else:
         response = default_response
         # Sends the response back to the channel
@@ -88,6 +93,9 @@ def execute_command(command, channel):
         channel=channel,
         text=response
     )
+
+def set_goal_metric(number, metric, dimensions):
+    
 
 def graph_metric(command, channel):
     response = ''
@@ -135,8 +143,9 @@ def initialize_analyticsreporting():
   analytics = build('analyticsreporting', 'v4', credentials=credentials, cache_discovery=False)
   return analytics
 
-# return number of pageviews/sessions with option for date range
-def count(metric):
+# parses input and extracts and returns start and end date
+# default if none is given is one week
+def get_start_end_date(command):
     start_date = "7daysAgo"
     end_date = "today"
     words = command.split(' ')
@@ -146,11 +155,16 @@ def count(metric):
     if 'to' in command:
         pos = words.index('to')
         end_date = command.split()[pos+1]
-    if 'MOD' or 'mod' in command: 
+    if 'MTD' or 'mtd' in command: 
         # calculate how many days since beginning of month
         time = datetime.date.today()
         days_in_month = monthrange(time.year, time.month)[1]
         start_date = str(monthrange(time.year, time.month)[1]) + 'daysAgo'
+    return start_date, end_date
+
+# return number of pageviews/sessions with option for date range
+def count(metric):
+    start_date, end_date = get_start_end_date(metric)
     analytics = initialize_analyticsreporting()
     try: 
         response = analytics.reports().batchGet(
@@ -172,15 +186,7 @@ def count(metric):
 
 # configure count function to plot x y coordinates with matplotlib
 def count_xy(metric, dimension, command):
-    start_date = "7daysAgo"
-    end_date = "today"
-    words = command.split(' ')
-    if 'from' in command:
-        pos = words.index('from')
-        start_date = command.split()[pos+1]
-    if 'to' in command:
-        pos = words.index('to')
-        end_date = command.split()[pos+1]
+    start_date, end_date = get_start_end_date(metric)
     analytics = initialize_analyticsreporting()
     response = analytics.reports().batchGet(
         body={

@@ -4,10 +4,13 @@
 @stats-bot help
 
 @stats-bot count (metric) from (starttime) to (endtime)
+@stats-bot goal (number) (metric) by (dimension)
 
 Examples:
 @stats-bot count newUsers from 14daysago to today
 @stats-bot count pageviews from 100daysago to today
+
+
 
 Available metrics:
 * pageviews - total number of views across all pages (vietcetera.com and all its articles)
