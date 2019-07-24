@@ -11,10 +11,12 @@ import matplotlib.pylab as pl
 import matplotlib.lines as ln
 import matplotlib.pyplot as plt
 import logging
+import datetime
 from slackclient import SlackClient
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.errors import HttpError
+from calendar import monthrange
 
 slack_token = os.environ['SLACK_BOT_TOKEN']
 slack_client = SlackClient(slack_token)
@@ -144,6 +146,11 @@ def count(metric):
     if 'to' in command:
         pos = words.index('to')
         end_date = command.split()[pos+1]
+    if 'MOD' or 'mod' in command: 
+        # calculate how many days since beginning of month
+        time = datetime.date.today()
+        days_in_month = monthrange(time.year, time.month)[1]
+        start_date = str(monthrange(time.year, time.month)[1]) + 'daysAgo'
     analytics = initialize_analyticsreporting()
     try: 
         response = analytics.reports().batchGet(
