@@ -94,7 +94,7 @@ def execute_command(command, channel):
         text=response
     )
 
-def set_goal_metric(number, metric, dimensions):
+# def set_goal_metric(number, metric, dimensions):
     
 
 def graph_metric(command, channel):
