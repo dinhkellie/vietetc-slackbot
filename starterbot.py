@@ -96,7 +96,6 @@ def execute_command(command, channel):
 
 # def set_goal_metric(number, metric, dimensions):
     
-
 def graph_metric(command, channel):
     response = ''
     if len(command.split())>1:
