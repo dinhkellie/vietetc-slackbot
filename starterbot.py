@@ -211,7 +211,7 @@ def count_xy(metric, dimension, command):
     return xArray, yArray
 
 
-if __name__ == "__main__":
+def run():
     if slack_client.rtm_connect(with_team_state=False):
         print("Starter Bot connected and running!")
         # Read bot's user ID by calling Web API method `auth.test`

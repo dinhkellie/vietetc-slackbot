@@ -1,1 +1,1 @@
-web: python startbot.py
+python run.py
