@@ -1,1 +1,1 @@
-slackbot: python run.py
+slackbot: python /app/run.py
