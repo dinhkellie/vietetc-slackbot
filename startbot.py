@@ -18,28 +18,30 @@ from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.errors import HttpError
 from calendar import monthrange
 
+# constants
+RTM_READ_DELAY = 1 # 1 second delay between reading from RTM
+MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
+
 class Startbot:
-    slack_token = os.environ['SLACK_BOT_TOKEN']
-    slack_client = SlackClient(slack_token)
-    view_id = os.environ['VIEW_ID']
 
-    SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
-    KEY_FILE_LOCATION = 'Slackbot-vietetc-0c24bfcf328c.json'
-    VIEW_ID = view_id
+    def __init__(self):
+        self.slack_token = os.environ['SLACK_BOT_TOKEN']
+        self.slack_client = SlackClient(self.slack_token)
+        self.view_id = os.environ['VIEW_ID']
+
+        self.SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
+        self.KEY_FILE_LOCATION = 'Slackbot-vietetc-0c24bfcf328c.json'
+        self.VIEW_ID = self.view_id
 
 
-    logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
+        logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
 
-    # instantiate Slack client
-    # slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
-    # starterbot's user ID in Slack: value is assigned after the bot starts up
-    starterbot_id = None
+        # instantiate Slack client
+        # slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+        # starterbot's user ID in Slack: value is assigned after the bot starts up
+        self.starterbot_id = None
 
-    # constants
-    RTM_READ_DELAY = 1 # 1 second delay between reading from RTM
-    MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
-
-    def parse_bot_commands(slack_events):
+    def parse_bot_commands(self, slack_events):
         """
             Parses a list of events coming from the Slack RTM API to find bot commands.
             If a bot command is found, this function returns a tuple of command and channel.
@@ -47,12 +49,12 @@ class Startbot:
         """
         for event in slack_events:
             if event["type"] == "message" and not "subtype" in event:
-                user_id, message = parse_direct_mention(event["text"])
-                if user_id == starterbot_id:
+                user_id, message = self.parse_direct_mention(event["text"])
+                if user_id == self.starterbot_id:
                     return message, event["channel"]
         return None, None
 
-    def parse_direct_mention(message_text):
+    def parse_direct_mention(self, message_text):
         """
             Finds a direct mention (a mention that is at the beginning) in message text
             and returns the user ID which was mentioned. If there is no direct mention, returns None
@@ -61,10 +63,10 @@ class Startbot:
         # the first group contains the username, the second group contains the remaining message
         return (matches.group(1), matches.group(2).strip()) if matches else (None, None)
 
-    def handle_command(command, channel):
-        return execute_command(command, channel)
+    def handle_command(self, command, channel):
+        return self.execute_command(command, channel)
 
-    def execute_command(command, channel):
+    def execute_command(self, command, channel):
         """
             Executes bot command if the command is known
         """
@@ -80,16 +82,16 @@ class Startbot:
         elif command.startswith("help"):
             response = "Usage: @stats-bot `count` (metric) `from` (starttime) `to` (endtime) \n Examples: \n @stats-bot `count` newUsers `from` 14daysago `to` today \n @stats-bot `count` pageviews `from` 100daysago `to` today \n @stats-bot `count` users \n @stats-bot `graph` (metric) by `dimension` `from` (starttime) `to` (endtime) \n @stats-bot `graph` users `by` day `from` 14daysago `to` today"
         elif command.startswith("graph"):
-            graph_metric(command, channel)
+            self.graph_metric(command, channel)
         elif command.startswith("goal"):
             goal_number = command.split()[1]
             metric = command.split()[2]
             dimension = command.split()[4]
-            response = 'You are currently at '+ str(set_goal_metric(goal_number, metric, dimension)) + metric
+            response = 'You are currently at '+ str(self.set_goal_metric(goal_number, metric, dimension)) + metric
         else:
             response = default_response
             # Sends the response back to the channel
-        slack_client.api_call(
+        self.slack_client.api_call(
             "chat.postMessage",
             channel=channel,
             text=response
@@ -97,7 +99,7 @@ class Startbot:
 
     # def set_goal_metric(number, metric, dimensions):
         
-    def graph_metric(command, channel):
+    def graph_metric(self, command, channel):
         response = ''
         if len(command.split())>1:
             metric = command.split()[1]
@@ -105,7 +107,7 @@ class Startbot:
             if 'by' in command and len(command.split())>3:
                 pos = words.index('by')
                 dimension = command.split()[pos+1]
-                x, y=count_xy(metric, dimension, command)
+                x, y = self.count_xy(metric, dimension, command)
                 if not x[0].isdigit():
                     xtick_names = [x[0], x[1], x[2], x[3], x[4],  x[5],  x[6]]
                     my_xticks = [textwrap.fill(text,15) for text in xtick_names]
@@ -121,7 +123,7 @@ class Startbot:
                 plt.title(metric.capitalize()+' by '+dimension.capitalize()) #Sets the title as [Metric] by [Dimension]
                 plt.tight_layout() #adjusts spacing between subplots
                 pl.savefig("graph.png") #saves the graph as a png file
-                slack_client.api_call('files.upload', channels=channel, filename='graph.png', file=open('graph.png', 'rb')) #uploads the png file to slack
+                self.slack_client.api_call('files.upload', channels=channel, filename='graph.png', file=open('graph.png', 'rb')) #uploads the png file to slack
                 pl.close()
             else: #run if the command doesn’t contain more than four words
                 response='`What should {} be graphed by?`'.format(metric)
@@ -129,7 +131,7 @@ class Startbot:
             response='`Graph what?`'
 
         # Sends the response back to the channel
-        slack_client.api_call(
+        self.slack_client.api_call(
             "chat.postMessage",
             channel=channel,
             text=response
@@ -137,15 +139,15 @@ class Startbot:
 
 
     # initialize an analytics object
-    def initialize_analyticsreporting():
+    def initialize_analyticsreporting(self):
         credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            KEY_FILE_LOCATION, SCOPES)
+            self.KEY_FILE_LOCATION, self.SCOPES)
         analytics = build('analyticsreporting', 'v4', credentials=credentials, cache_discovery=False)
         return analytics
 
     # parses input and extracts and returns start and end date
     # default if none is given is one week
-    def get_start_end_date(command):
+    def get_start_end_date(self, command):
         start_date = "7daysAgo"
         end_date = "today"
         words = command.split(' ')
@@ -163,7 +165,7 @@ class Startbot:
         return start_date, end_date
 
     # return number of pageviews/sessions with option for date range
-    def count(metric):
+    def count(self, metric):
         start_date, end_date = get_start_end_date(metric)
         analytics = initialize_analyticsreporting()
         try: 
@@ -185,14 +187,14 @@ class Startbot:
         return answer
 
     # configure count function to plot x y coordinates with matplotlib
-    def count_xy(metric, dimension, command):
-        start_date, end_date = get_start_end_date(metric)
-        analytics = initialize_analyticsreporting()
+    def count_xy(self, metric, dimension, command):
+        start_date, end_date = self.get_start_end_date(metric)
+        analytics = self.initialize_analyticsreporting()
         response = analytics.reports().batchGet(
             body={
                 'reportRequests': [
                 {
-                    'viewId': VIEW_ID,
+                    'viewId': self.VIEW_ID,
                     'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
                     'metrics': [{'expression': 'ga:{}'.format(metric)}],
                     'dimensions': [{'name':'ga:{}'.format(dimension)}]
@@ -211,16 +213,15 @@ class Startbot:
             xArray.append(answer[step]['dimensions'][0])
         return xArray, yArray
 
-
-    def run():
-        if slack_client.rtm_connect(with_team_state=False):
+    def run(self):
+        if self.slack_client.rtm_connect(with_team_state=False):
             print("Starter Bot connected and running!")
             # Read bot's user ID by calling Web API method `auth.test`
-            starterbot_id = slack_client.api_call("auth.test")["user_id"]
+            self.starterbot_id = self.slack_client.api_call("auth.test")["user_id"]
             while True:
-                command, channel = parse_bot_commands(slack_client.rtm_read())
+                command, channel = self.parse_bot_commands(self.slack_client.rtm_read())
                 if command:
-                    handle_command(command, channel)
+                    self.handle_command(command, channel)
                 time.sleep(RTM_READ_DELAY)
         else:
             print("Connection failed. Exception traceback printed above.")

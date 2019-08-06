@@ -1,6 +1,6 @@
 import os
 from flask import Flask, request, make_response, render_template
-import Startbot
+from Startbot import Startbot
 
 app = Flask(__name__)
 @app.route("/", methods=["GET"])
@@ -11,3 +11,4 @@ def home():
 if __name__ == '__main__':
   bot = Startbot()
   bot.run()
+  

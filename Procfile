@@ -1,1 +1,1 @@
-web: gunicorn app:app
+slackbot: python run.py
