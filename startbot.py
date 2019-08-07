@@ -78,7 +78,10 @@ class Startbot:
         
         if command.startswith("count"): 
             metric = command.split()[1]
-            response = '`{} {}`'.format(count(metric), metric)
+            response = '`{} {}`'.format(self.count(metric), metric)
+        elif command.startswith("views"):
+            metric = command.split()[1]
+            response = '`{} {}`'.format(self.views(metric), "views")
         elif command.startswith("help"):
             response = "Usage: @stats-bot `count` (metric) `from` (starttime) `to` (endtime) \n Examples: \n @stats-bot `count` newUsers `from` 14daysago `to` today \n @stats-bot `count` pageviews `from` 100daysago `to` today \n @stats-bot `count` users \n @stats-bot `graph` (metric) by `dimension` `from` (starttime) `to` (endtime) \n @stats-bot `graph` users `by` day `from` 14daysago `to` today"
         elif command.startswith("graph"):
@@ -166,14 +169,35 @@ class Startbot:
 
     # return number of pageviews/sessions with option for date range
     def count(self, metric):
-        start_date, end_date = get_start_end_date(metric)
-        analytics = initialize_analyticsreporting()
+        start_date, end_date = self.get_start_end_date(metric)
+        analytics = self.initialize_analyticsreporting()
         try: 
             response = analytics.reports().batchGet(
                 body={
                     'reportRequests': [
                     {
-                        'viewId': VIEW_ID,
+                        'viewId': self.VIEW_ID,
+                        'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
+                        'metrics': [{'expression': 'ga:{}'.format(metric)}]
+                    }]
+                }
+            ).execute()
+        except HttpError:
+            return "Unknown metric:"
+
+        answer = response['reports'][0]['data']['totals'][0]['values'][0]
+        print(response)
+        return answer
+
+    def views(self, metric):
+        start_date, end_date = self.get_start_end_date(metric)
+        analytics = self.initialize_analyticsreporting()
+        try: 
+            response = analytics.reports().batchGet(
+                body={
+                    'reportRequests': [
+                    {
+                        'viewId': self.VIEW_ID,
                         'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
                         'metrics': [{'expression': 'ga:{}'.format(metric)}]
                     }]
