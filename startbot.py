@@ -78,10 +78,10 @@ class Startbot:
         
         if command.startswith("count"): 
             metric = command.split()[1]
-            response = '`{} {}`'.format(self.count(metric), metric)
+            response = '`{} {}`'.format(self.count(command), metric)
         elif command.startswith("views"):
-            metric = command.split()[1]
-            response = '`{} {}`'.format(self.views(metric), "views")
+            url = command.split()[1]
+            response = '`{} {}`'.format(self.views(command, url), "views")
         elif command.startswith("help"):
             response = "Usage: @stats-bot `count` (metric) `from` (starttime) `to` (endtime) \n Examples: \n @stats-bot `count` newUsers `from` 14daysago `to` today \n @stats-bot `count` pageviews `from` 100daysago `to` today \n @stats-bot `count` users \n @stats-bot `graph` (metric) by `dimension` `from` (starttime) `to` (endtime) \n @stats-bot `graph` users `by` day `from` 14daysago `to` today"
         elif command.startswith("graph"):
@@ -168,8 +168,8 @@ class Startbot:
         return start_date, end_date
 
     # return number of pageviews/sessions with option for date range
-    def count(self, metric):
-        start_date, end_date = self.get_start_end_date(metric)
+    def count(self, command):
+        start_date, end_date = self.get_start_end_date(command)
         analytics = self.initialize_analyticsreporting()
         try: 
             response = analytics.reports().batchGet(
@@ -178,7 +178,7 @@ class Startbot:
                     {
                         'viewId': self.VIEW_ID,
                         'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
-                        'metrics': [{'expression': 'ga:{}'.format(metric)}]
+                        'metrics': [{'expression': 'ga:{}'.format(command)}]
                     }]
                 }
             ).execute()
@@ -189,8 +189,8 @@ class Startbot:
         print(response)
         return answer
 
-    def views(self, metric):
-        start_date, end_date = self.get_start_end_date(metric)
+    def views(self, command, url):
+        start_date, end_date = self.get_start_end_date(command)
         analytics = self.initialize_analyticsreporting()
         try: 
             response = analytics.reports().batchGet(
@@ -198,8 +198,14 @@ class Startbot:
                     'reportRequests': [
                     {
                         'viewId': self.VIEW_ID,
+                        'dimensions': [
+                            {
+                            "name": "ga:pagePath"
+                            }
+                        ],
                         'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
-                        'metrics': [{'expression': 'ga:{}'.format(metric)}]
+                        'metrics': [ { "expression": "ga:pageviews" } ],
+                        "dimensionFilterClauses": [ { "filters": [ { "operator": "EXACT", "dimensionName": "ga:pagePath", "expressions": url } ] } ]
                     }]
                 }
             ).execute()
