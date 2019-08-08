@@ -2,22 +2,25 @@
 
 ## Usage:
 
-
 @stats-bot help 
 
+### Get various data points
 @stats-bot count (metric) from (starttime) to (endtime)
 
 <!-- @stats-bot goal (number) (metric) by (dimension) -->
-
-leaving out the start and end time will default to the past 14 days
-@stats-bot count avgTimeOnPage 
-    returns the number of 
 
 Examples:
 @stats-bot count newUsers from 14daysago to today
 @stats-bot count pageviews from 100daysago to today
 
 @stats-bot views /en/yellow-fever-in-modern-day-vietnam-when-asia-is-like-disneyland/ from 3daysago to today
+
+if (starttime) and (endtime) are left out, the default range will be past 7 days
+
+### Graph data points
+@stats-bot graph users by day from 14daysago to today
+
+### See progress on goals
 
 
 ## Available metrics:
@@ -79,11 +82,3 @@ Examples:
 * _avgScreenviewDuration_
 
 There are more metrics that you can use to get data - the full list is at: https://ga-dev-tools.appspot.com/query-explorer/ and https://developers.google.com/analytics/devguides/reporting/core/dimsmets
-
-
-
-
-
-
-
-if (starttime) and (endtime) are left out, the default range will be past 7 days

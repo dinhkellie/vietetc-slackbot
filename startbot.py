@@ -78,7 +78,7 @@ class Startbot:
         
         if command.startswith("count"): 
             metric = command.split()[1]
-            response = '`{} {}`'.format(self.count(command), metric)
+            response = '`{} {}`'.format(self.count(metric), metric)
         elif command.startswith("views"):
             url = command.split()[1]
             response = '`{} {}`'.format(self.views(command, url), "views")
@@ -89,8 +89,8 @@ class Startbot:
         elif command.startswith("goal"):
             goal_number = command.split()[1]
             metric = command.split()[2]
-            dimension = command.split()[4]
-            response = 'You are currently at '+ str(self.set_goal_metric(goal_number, metric, dimension)) + metric
+            number, percentage = self.set_goal_metric(goal_number, command) 
+            response = 'Currently at '+ number + metric + " which is " + percentage + "% of goal"
         else:
             response = default_response
             # Sends the response back to the channel
@@ -100,8 +100,13 @@ class Startbot:
             text=response
         )
 
-    # def set_goal_metric(number, metric, dimensions):
-        
+    def set_goal_metric(self, number, command):
+        # first get the current amount using the count function
+        current_number = self.count(command)
+        # print (current_number) prints Unknown metric
+        goal_percentage = (int(current_number)/int(number))
+        return current_number, goal_percentage
+
     def graph_metric(self, command, channel):
         response = ''
         if len(command.split())>1:
@@ -186,7 +191,7 @@ class Startbot:
             return "Unknown metric:"
 
         answer = response['reports'][0]['data']['totals'][0]['values'][0]
-        print(response)
+        print(answer)
         return answer
 
     def views(self, command, url):
