@@ -90,7 +90,9 @@ class Startbot:
             goal_number = command.split()[1]
             metric = command.split()[2]
             number, percentage = self.set_goal_metric(goal_number, command) 
-            response = 'Currently at '+ number + metric + " which is " + percentage + "% of goal"
+            number = str(number)
+            percentage = str(percentage * 100)
+            response = 'Currently at '+ number + " " + metric + " which is " + percentage + "% of goal."
         else:
             response = default_response
             # Sends the response back to the channel
@@ -99,13 +101,6 @@ class Startbot:
             channel=channel,
             text=response
         )
-
-    def set_goal_metric(self, number, command):
-        # first get the current amount using the count function
-        current_number = self.count(command)
-        # print (current_number) prints Unknown metric
-        goal_percentage = (int(current_number)/int(number))
-        return current_number, goal_percentage
 
     def graph_metric(self, command, channel):
         response = ''
@@ -174,7 +169,9 @@ class Startbot:
 
     # return number of pageviews/sessions with option for date range
     def count(self, command):
+        # print ("in count:", command)
         start_date, end_date = self.get_start_end_date(command)
+        # print ("start date: ", start_date, "end date:", end_date)
         analytics = self.initialize_analyticsreporting()
         try: 
             response = analytics.reports().batchGet(
@@ -191,8 +188,17 @@ class Startbot:
             return "Unknown metric:"
 
         answer = response['reports'][0]['data']['totals'][0]['values'][0]
-        print(answer)
+        print (answer)
         return answer
+
+    def set_goal_metric(self, number, command):
+        # first get the current amount using the count function
+        metric = command.split()[2]
+        current_number = self.count(metric)
+        print (current_number)
+        goal_percentage = (int(current_number)/int(number))
+        return current_number, goal_percentage
+        # return 0
 
     def views(self, command, url):
         start_date, end_date = self.get_start_end_date(command)

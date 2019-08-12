@@ -5,13 +5,17 @@
 @stats-bot help 
 
 ### Get various data points
-@stats-bot count (metric) from (starttime) to (endtime)
+@stats-bot count (metric) [optional] from (starttime) to (endtime)
 
 <!-- @stats-bot goal (number) (metric) by (dimension) -->
 
 Examples:
 @stats-bot count newUsers from 14daysago to today
 @stats-bot count pageviews from 100daysago to today
+@stats-bot count users
+
+### Get number of views on a specific article by time period
+@stats-bot views (url slug - everything after vietcetera.com) [optional] from (starttime) to (enddtime)
 
 @stats-bot views /en/yellow-fever-in-modern-day-vietnam-when-asia-is-like-disneyland/ from 3daysago to today
 
@@ -21,7 +25,18 @@ if (starttime) and (endtime) are left out, the default range will be past 7 days
 @stats-bot graph users by day from 14daysago to today
 
 ### See progress on goals
+If you have a goal number in mind, say 1 million page views by the end of the month, there is a command to easily help you find out how close we are to that goal number.
 
+@stats-bot goal 1000000 pageviews from 30daysago to today
+@stats-bot goal 1000000 pageviews mtd 
+
+> Currently at 163688 pageviews which is 16.3688% of goal.
+
+The output will be of the format:
+Currently at X (metric) which is Y % of goal. 
+
+#### Important:
+* Numbers must be without commas or periods i.e. 100,000 or 100.000 will not work.
 
 ## Available metrics:
 
