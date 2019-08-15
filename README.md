@@ -1,5 +1,7 @@
 # Vietcetera Analytics Bot
 
+A bot integration for Vietcetera's Slack that pulls real-time data from Google Analytics Core Reporting API. 
+
 ## Usage:
 
 @stats-bot help 

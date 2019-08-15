@@ -7,3 +7,5 @@
 
 @stats-bot graph users by day from 14daysago to today
 
+@stats-bot top pages from 
+

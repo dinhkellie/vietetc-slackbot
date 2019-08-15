@@ -86,6 +86,8 @@ class Startbot:
             response = "Usage: @stats-bot `count` (metric) `from` (starttime) `to` (endtime) \n Examples: \n @stats-bot `count` newUsers `from` 14daysago `to` today \n @stats-bot `count` pageviews `from` 100daysago `to` today \n @stats-bot `count` users \n @stats-bot `graph` (metric) by `dimension` `from` (starttime) `to` (endtime) \n @stats-bot `graph` users `by` day `from` 14daysago `to` today"
         elif command.startswith("graph"):
             self.graph_metric(command, channel)
+        elif command.startswith("top"):
+            response = self.top(command)
         elif command.startswith("goal"):
             goal_number = command.split()[1]
             metric = command.split()[2]
@@ -166,6 +168,47 @@ class Startbot:
             days_in_month = monthrange(time.year, time.month)[1]
             start_date = str(monthrange(time.year, time.month)[1]) + 'daysAgo'
         return start_date, end_date
+
+    # def top(self, command):
+    #     start_date, end_date = self.get_start_end_date(command)
+    #     analytics = self.initialize_analyticsreporting()
+    #     # try: 
+    #     response = analytics.reports().batchGet(
+    #         body={
+    #             'reportRequests': [
+    #             {
+    #                 'viewId': self.view_id,
+    #                 'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
+    #                 'metrics': [{'expression': 'ga:uniquePageviews'},
+    #                             {'expression': 'ga:pageviews'}],
+    #                 'dimensions': [{'name': "ga:country"}],
+    #                 "dimensionFilterClauses": [{
+    #                     'filters': [{"dimensionName": "ga:pagePath", 'expressions': ['ga:pagePath'] }]
+    #                 }]
+    #             }]
+    #         }
+    #     ).execute()
+            
+    #     # except HttpError:
+    #     #     return "Unable to get top pages"
+
+    #     """
+    #     Parse the data to something readable and return it.
+    #     :return: dictionary with data
+    #     """
+    #     report = response['reports']
+    #     metricHeaderEntries = report[0]['columnHeader']['metricHeader']['metricHeaderEntries']
+    #     totals = report[0]['data']['totals']
+    #     unique = totals[0]['values'][0]
+    #     pageviews = totals[0]['values'][1]
+
+    #     data = {}
+    #     data[metricHeaderEntries[0]['name']] = unique
+    #     data[metricHeaderEntries[1]['name']] = pageviews
+        
+    #     return data
+        
+
 
     # return number of pageviews/sessions with option for date range
     def count(self, command):
