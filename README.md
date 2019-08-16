@@ -7,12 +7,15 @@ Important Note: The Slack Bot is hosted on Heroku's Free Tier so if the bot is n
 On the command line:
 > heroku ps:scale worker=0
 > heroku ps:scale web=0
+
 This shuts down all processes
 
 > heroku ps:scale worker=1
+
 This turns the worker dyno back on
 
 To verify the build status:
+
 > heroku logs --tail
 
 And hopefully it says something like:
