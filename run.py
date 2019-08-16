@@ -9,8 +9,5 @@ def home():
   bot = Startbot()
   bot.run()
   return 'Vietcetera Analytics Bot connected and running!'
-if __name__ == '__main__':
-  home()
-else:
-  home()
+home()
   
