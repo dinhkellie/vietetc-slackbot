@@ -12,6 +12,7 @@ import matplotlib.lines as ln
 import matplotlib.pyplot as plt
 import logging
 import datetime
+import difflib
 from slackclient import SlackClient
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
@@ -296,8 +297,10 @@ class Startbot:
         for step in range(0, len(answer)):
             xArray.append(answer[step]['dimensions'][0])
         return xArray, yArray
+    
 
     def run(self):
+        
         if self.slack_client.rtm_connect(with_team_state=False):
             print("Starter Bot connected and running!")
             # Read bot's user ID by calling Web API method `auth.test`
