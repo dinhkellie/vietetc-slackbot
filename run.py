@@ -1,6 +1,6 @@
 import os
 from flask import Flask, request, make_response, render_template
-from Startbot import Startbot
+import Startbot
 
 app = Flask(__name__)
 @app.route("/", methods=["GET"])
