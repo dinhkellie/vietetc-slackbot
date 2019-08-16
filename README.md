@@ -2,6 +2,23 @@
 
 A bot integration for Vietcetera's Slack that pulls real-time data from Google Analytics Core Reporting API. 
 
+Important Note: The Slack Bot is hosted on Heroku's Free Tier so if the bot is not responding, the heroku dyno might need to be restarted. 
+
+On the command line:
+> heroku ps:scale worker=0
+> heroku ps:scale web=0
+This shuts down all processes
+
+> heroku ps:scale worker=1
+This turns the worker dyno back on
+
+To verify the build status:
+> heroku logs --tail
+
+And hopefully it says something like:
+app[api]: Build succeeded
+app[worker.1]: Starter Bot connected and running!
+
 ## Usage:
 
 @stats-bot help 
