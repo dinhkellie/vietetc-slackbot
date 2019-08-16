@@ -154,20 +154,28 @@ class Startbot:
     # parses input and extracts and returns start and end date
     # default if none is given is one week
     def get_start_end_date(self, command):
-        start_date = "7daysAgo"
-        end_date = "today"
+        start_date = ''
+        end_date = ''
+        
         words = command.split(' ')
-        if 'from' in command:
-            pos = words.index('from')
-            start_date = command.split()[pos+1]
-        if 'to' in command:
-            pos = words.index('to')
-            end_date = command.split()[pos+1]
-        if 'MTD' or 'mtd' in command: 
+        
+        if 'from' in command or 'to' in command:
+            if 'from' in command:
+                pos = words.index('from')
+                start_date = command.split()[pos+1]
+            if 'to' in command:
+                pos = words.index('to')
+                end_date = command.split()[pos+1]
+        elif 'MTD' in command or 'mtd' in command: 
             # calculate how many days since beginning of month
             time = datetime.date.today()
             days_in_month = monthrange(time.year, time.month)[1]
             start_date = str(monthrange(time.year, time.month)[1]) + 'daysAgo'
+        else:
+            # default range is one week
+            start_date = '7daysago'
+            end_date = 'today'
+            
         return start_date, end_date
 
     # def top(self, command):
@@ -213,33 +221,32 @@ class Startbot:
 
     # return number of pageviews/sessions with option for date range
     def count(self, command):
-        # print ("in count:", command)
         start_date, end_date = self.get_start_end_date(command)
-        # print ("start date: ", start_date, "end date:", end_date)
+        
         analytics = self.initialize_analyticsreporting()
-        try: 
-            response = analytics.reports().batchGet(
-                body={
-                    'reportRequests': [
-                    {
-                        'viewId': self.VIEW_ID,
-                        'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
-                        'metrics': [{'expression': 'ga:{}'.format(command)}]
-                    }]
-                }
-            ).execute()
-        except HttpError:
-            return "Unknown metric:"
+        # try: 
+        response = analytics.reports().batchGet(
+            body={
+                'reportRequests': [
+                {
+                    'viewId': self.VIEW_ID,
+                    'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
+                    'metrics': [{'expression': 'ga:{}'.format(command)}]
+                }]
+            }
+        ).execute()
+        # except HttpError:
+        #     return "Unknown metric:"
 
         answer = response['reports'][0]['data']['totals'][0]['values'][0]
-        print (answer)
+        # print (answer)
         return answer
 
     def set_goal_metric(self, number, command):
         # first get the current amount using the count function
         metric = command.split()[2]
         current_number = self.count(metric)
-        print (current_number)
+        # print (current_number)
         goal_percentage = (int(current_number)/int(number))
         return current_number, goal_percentage
         # return 0
@@ -268,13 +275,12 @@ class Startbot:
             return "Unknown metric:"
 
         answer = response['reports'][0]['data']['totals'][0]['values'][0]
-        print(response)
+        # print(response)
         return answer
 
     # configure count function to plot x y coordinates with matplotlib
     def count_xy(self, metric, dimension, command):
         start_date, end_date = self.get_start_end_date(command)
-        print ("count xy: ", start_date, end_date)
         analytics = self.initialize_analyticsreporting()
         response = analytics.reports().batchGet(
             body={
