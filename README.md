@@ -6,6 +6,7 @@ Important Note: The Slack Bot is hosted on Heroku's Free Tier so if the bot is n
 
 On the command line:
 > heroku ps:scale worker=0
+
 > heroku ps:scale web=0
 
 This shuts down all processes
