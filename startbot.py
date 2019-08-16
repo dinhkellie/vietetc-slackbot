@@ -84,7 +84,7 @@ class Startbot:
             url = command.split()[1]
             response = '`{} {}`'.format(self.views(command, url), "views")
         elif command.startswith("help"):
-            response = "Usage: @stats-bot `count` (metric) `from` (starttime) `to` (endtime) \n Examples: \n @stats-bot `count` newUsers `from` 14daysago `to` today \n @stats-bot `count` pageviews `from` 100daysago `to` today \n @stats-bot `count` users \n @stats-bot `graph` (metric) by `dimension` `from` (starttime) `to` (endtime) \n @stats-bot `graph` users `by` day `from` 14daysago `to` today"
+            response = "Usage: @stats-bot `count` (metric) `from` (starttime) `to` (endtime) \n Examples: \n @stats-bot `count` newUsers `from` 14daysago `to` today \n @stats-bot `count` pageviews `from` 100daysago `to` today \n @stats-bot `count` users \n \n @stats-bot `graph` (metric) by `dimension` `from` (starttime) `to` (endtime) \n @stats-bot `graph` users `by` day `from` 14daysago `to` today \n \n @stats-bot views (url slug - everything after vietcetera.com) [optional] from (starttime) to (enddtime) \n @stats-bot views /en/yellow-fever-in-modern-day-vietnam-when-asia-is-like-disneyland/ from 3daysago to today \n \n if (starttime) and (endtime) are left out, the default range will be past 7 days"
         elif command.startswith("graph"):
             self.graph_metric(command, channel)
         elif command.startswith("top"):
@@ -224,19 +224,19 @@ class Startbot:
         start_date, end_date = self.get_start_end_date(command)
         
         analytics = self.initialize_analyticsreporting()
-        # try: 
-        response = analytics.reports().batchGet(
-            body={
-                'reportRequests': [
-                {
-                    'viewId': self.VIEW_ID,
-                    'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
-                    'metrics': [{'expression': 'ga:{}'.format(command)}]
-                }]
-            }
-        ).execute()
-        # except HttpError:
-        #     return "Unknown metric:"
+        try: 
+            response = analytics.reports().batchGet(
+                body={
+                    'reportRequests': [
+                    {
+                        'viewId': self.VIEW_ID,
+                        'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
+                        'metrics': [{'expression': 'ga:{}'.format(command)}]
+                    }]
+                }
+            ).execute()
+        except HttpError:
+            return "Unknown metric:"
 
         answer = response['reports'][0]['data']['totals'][0]['values'][0]
         # print (answer)
