@@ -159,14 +159,14 @@ class Startbot:
         
         words = command.split(' ')
         
-        if 'from' in command or 'to' in command:
-            if 'from' in command:
+        if ' from ' in command or ' to ' in command:
+            if ' from ' in command:
                 pos = words.index('from')
                 start_date = command.split()[pos+1]
-            if 'to' in command:
+            if ' to ' in command:
                 pos = words.index('to')
                 end_date = command.split()[pos+1]
-        elif 'MTD' in command or 'mtd' in command: 
+        elif ' MTD ' in command or ' mtd ' in command: 
             # calculate how many days since beginning of month
             time = datetime.date.today()
             days_in_month = monthrange(time.year, time.month)[1]
