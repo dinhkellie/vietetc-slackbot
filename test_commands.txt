@@ -1,9 +1,0 @@
-@stats-bot count users mtd
-
-@stats-bot count users 
-
-@stats-bot count newUsers from 14daysago to today
-@stats-bot count pageviews from 100daysago to today
-
-@stats-bot graph users by day from 14daysago to today
-
