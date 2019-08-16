@@ -31,7 +31,7 @@ class Startbot:
         self.view_id = os.environ['VIEW_ID']
 
         self.SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
-        self.KEY_FILE_LOCATION = 'Slackbot-vietetc-0c24bfcf328c.json'
+        self.KEY_FILE_LOCATION = 'google-credentials.json'
         self.VIEW_ID = self.view_id
 
 
