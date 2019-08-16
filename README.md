@@ -7,7 +7,7 @@ A bot integration for Vietcetera's Slack that pulls real-time data from Google A
 @stats-bot help 
 
 ### Get various data points
-@stats-bot count (metric) [optional] from (starttime) to (endtime)
+_Format_ @stats-bot count (metric) [optional] from (starttime) to (endtime)
 
 <!-- @stats-bot goal (number) (metric) by (dimension) -->
 
@@ -17,13 +17,15 @@ Examples:
 @stats-bot count users
 
 ### Get number of views on a specific article by time period
-@stats-bot views (url slug - everything after vietcetera.com) [optional] from (starttime) to (enddtime)
+_Format_ @stats-bot views (url slug - everything after vietcetera.com) [optional] from (starttime) to (enddtime)
 
 @stats-bot views /en/yellow-fever-in-modern-day-vietnam-when-asia-is-like-disneyland/ from 3daysago to today
 
 if (starttime) and (endtime) are left out, the default range will be past 7 days
 
 ### Graph data points
+_Format_ @stats-bot graph (metric) [optional] from (starttime) to (enddtime)
+
 @stats-bot graph users by day from 14daysago to today
 
 ### See progress on goals

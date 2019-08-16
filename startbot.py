@@ -274,6 +274,7 @@ class Startbot:
     # configure count function to plot x y coordinates with matplotlib
     def count_xy(self, metric, dimension, command):
         start_date, end_date = self.get_start_end_date(metric)
+        print ("count xy: ", start_date, end_date)
         analytics = self.initialize_analyticsreporting()
         response = analytics.reports().batchGet(
             body={
